@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Толерантность как норма жизни"
-date:   2020-10-11 12:20:31 -0600
+date:   2020-10-11
 ---
 
 ![Tolerance](/assets/images/tolerance.jpeg)
