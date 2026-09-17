@@ -1,0 +1,7 @@
+{
+  "name": "public-availability-schedule",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test tests/*.test.js", "start": "node scripts/serve.mjs" },
+  "engines": { "node": ">=20" }
+}

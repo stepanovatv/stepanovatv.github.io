@@ -1,228 +1,48 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="ru">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
-
-<style>
-body {
-  font-family: 'Montserrat';
-  font-size: 18px;
-  padding: 20px;
-}
-
-/* Table styles */
-table.GeneratedTable {
-  width: 70%;
-  background-color: #ffffff;
-  border-collapse: collapse;
-  border: 2px solid #ffcc00;
-  color: #000000;
-  table-layout: auto;
-}
-
-table.GeneratedTable th, table.GeneratedTable td {
-  border: 2px solid #ffcc00;
-  padding: 6px 8px;
-  text-align: center;
-}
-
-table.GeneratedTable thead {
-  background-color: #ffcc00;
-}
-
-/* Make first column narrower */
-table.GeneratedTable th:first-child {
-  width: 1%;
-  white-space: nowrap;
-}
-
-.busy {
-  background-color: #ffcc00;
-}
-
-/* Highlight colors */
-.highlight {
-  background-color: #fff8cc !important;
-}
-
-.cell-highlight {
-  background-color: #fff3b3 !important;
-}
-
-/* Toggle switch styling */
-.toggle {
-  position: relative;
-  display: inline-block;
-  width: 50px;
-  height: 26px;
-  margin-left: 10px;
-}
-.toggle input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0;
-  right: 0; bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-  border-radius: 26px;
-}
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 20px;
-  width: 20px;
-  left: 3px;
-  bottom: 3px;
-  background-color: white;
-  transition: 0.4s;
-  border-radius: 50%;
-}
-input:checked + .slider {
-  background-color: #ffcc00;
-}
-input:checked + .slider:before {
-  transform: translateX(24px);
-}
-
-#controls {
-  margin-bottom: 15px;
-  font-size: 18px;
-}
-
-/* Responsive layout */
-@media screen and (max-width: 600px) {
-  table.GeneratedTable {
-    width: 100%;
-  }
-}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#155747">
+  <meta name="description" content="Свободные окна для занятий — расписание в вашей часовой зоне.">
+  <title>Расписание занятий</title>
+  <link rel="icon" href="./assets/calendar.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./css/style.css">
+  <script type="module" src="./js/app.js"></script>
 </head>
-
 <body>
-<div id="controls">
-  <div>🕒 Ваш часовой пояс: <span id="timezone"></span></div>
-  <label>Показывать местное время
-    <label class="toggle">
-      <input type="checkbox" id="timeSwitch">
-      <span class="slider"></span>
-    </label>
-  </label>
-</div>
-
-<table class="GeneratedTable" id="scheduleTable">
-  <thead>
-    <tr>
-      <th id="timeHeader">Время (МСК)</th>
-      <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
-    </tr>
-  </thead>
-  <tbody>
-  <tbody>
-    <!-- Время          Понедельник            Вторник                Среда                  Четверг                Пятница                Суббота                Воскресенье              -->
-    <tr> <th>07:00</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>07:30</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>08:00</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>08:30</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>09:00</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>09:30</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>10:00</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>10:30</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>11:00</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>11:30</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>12:00</th> <td class="----"></td> <td class="busy"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>12:30</th> <td class="----"></td> <td class="busy"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>13:00</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>13:30</th> <td class="busy"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>14:00</th> <td class="busy"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>14:30</th> <td class="busy"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>15:00</th> <td class="busy"></td> <td class="busy"></td> <td class="----"></td> <td class="busy"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>15:30</th> <td class="----"></td> <td class="busy"></td> <td class="----"></td> <td class="busy"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>16:00</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>16:30</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>17:00</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>17:30</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>18:00</th> <td class="busy"></td> <td class="busy"></td> <td class="busy"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>18:30</th> <td class="busy"></td> <td class="busy"></td> <td class="busy"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-    <tr> <th>19:00</th> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="----"></td> <td class="busy"></td> <td class="busy"></td> </tr>
-  </tbody>
-  </tbody>
-</table>
-
-<script>
-const timezoneElement = document.getElementById('timezone');
-const timeSwitch = document.getElementById('timeSwitch');
-const table = document.getElementById('scheduleTable');
-const timeHeader = document.getElementById('timeHeader');
-
-// Show browser timezone
-timezoneElement.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-// Store MSK times
-const rows = Array.from(table.querySelectorAll('tbody tr'));
-const timeCells = rows.map(row => row.querySelector('th'));
-const originalTimes = timeCells.map(th => th.textContent.trim());
-
-// Convert MSK (UTC+3) → local
-function convertMskToLocal(mskTime) {
-  const [hours, minutes] = mskTime.split(':').map(Number);
-  const mskDate = new Date();
-  mskDate.setUTCHours(hours - 3);
-  mskDate.setUTCMinutes(minutes);
-  return mskDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-}
-
-function updateTimes() {
-  const useLocal = timeSwitch.checked;
-  timeHeader.textContent = useLocal ? 'Время (местное)' : 'Время (МСК)';
-  timeCells.forEach((th, i) => {
-    th.textContent = useLocal ? convertMskToLocal(originalTimes[i]) : originalTimes[i];
-  });
-}
-
-timeSwitch.addEventListener('change', updateTimes);
-
-// Hover highlight logic
-const cells = table.querySelectorAll('tbody td');
-
-cells.forEach(cell => {
-  cell.addEventListener('mouseenter', e => {
-    if (cell.classList.contains('busy')) return;
-    const colIndex = cell.cellIndex;
-    const row = cell.parentElement;
-
-    // highlight the hovered cell
-    cell.classList.add('cell-highlight');
-
-    // highlight row cells
-    row.querySelectorAll('td:not(.busy)').forEach(td => td.classList.add('highlight'));
-
-    // highlight column cells
-    table.querySelectorAll('tbody tr').forEach(tr => {
-      const targetCell = tr.children[colIndex];
-      if (targetCell && !targetCell.classList.contains('busy')) {
-        targetCell.classList.add('highlight');
-      }
-    });
-
-    // highlight header (column)
-    const headerCell = table.querySelector(`thead tr th:nth-child(${colIndex + 1})`);
-    if (headerCell) headerCell.classList.add('highlight');
-
-    // highlight time header (row)
-    const rowHeader = row.querySelector('th');
-    if (rowHeader) rowHeader.classList.add('highlight');
-  });
-
-  cell.addEventListener('mouseleave', e => {
-    table.querySelectorAll('.highlight, .cell-highlight').forEach(el => el.classList.remove('highlight', 'cell-highlight'));
-  });
-});
-</script>
+  <a class="skip" href="#schedule">К расписанию</a>
+  <main>
+    <header class="page-header">
+      <div class="eyebrow"><img src="./assets/calendar.svg" width="24" height="24" alt=""> РАСПИСАНИЕ ЗАНЯТИЙ</div>
+      <h1>Время для занятия</h1>
+      <p class="intro">Найдите свободное окно в удобное для вас время.</p>
+    </header>
+    <section class="zone-panel" aria-label="Часовая зона">
+      <div><span class="small-label">ВАШЕ МЕСТНОЕ ВРЕМЯ</span><p id="timezone-message">Определяем часовую зону…</p></div>
+      <div class="zone-control"><label for="timezone">Часовая зона</label><select id="timezone"></select></div>
+    </section>
+    <section id="schedule" tabindex="-1" aria-label="Расписание доступности" aria-busy="true">
+      <div class="schedule-toolbar">
+        <div><span class="small-label" id="month-label"></span><h2 id="week-label">Расписание</h2></div>
+        <nav class="week-nav" aria-label="Навигация по неделям">
+          <button id="previous-week" class="icon-button" aria-label="Предыдущая неделя">←</button>
+          <button id="current-week">Текущая неделя</button>
+          <button id="next-week" class="icon-button" aria-label="Следующая неделя">→</button>
+        </nav>
+      </div>
+      <div class="legend"><span><i class="legend-free" aria-hidden="true">✓</i> Свободно</span><span><i class="legend-busy" aria-hidden="true">−</i> Занято</span><span id="slot-duration" class="duration"></span></div>
+      <p id="load-status" class="load-status" role="status">Загружаем расписание…</p>
+      <button id="retry" hidden>Попробовать снова</button>
+      <div id="schedule-content" hidden>
+        <nav id="day-tabs" class="day-tabs" aria-label="Выбор дня"></nav>
+        <div class="desktop-schedule"><div class="table-scroll"><table id="week-table"><caption class="sr-only">Недельное расписание. Нажмите на окно для подробностей.</caption></table></div></div>
+        <div class="mobile-schedule"><h3 id="mobile-date"></h3><div id="day-slots" class="day-slots"></div></div>
+      </div>
+      <aside id="slot-detail" class="slot-detail" aria-live="polite">Выберите окно, чтобы посмотреть подробности.</aside>
+    </section>
+    <footer><span id="updated"></span><span>Время преподавателя: Оренбург</span></footer>
+  </main>
+  <noscript><p class="load-status">Для просмотра расписания включите JavaScript в браузере.</p></noscript>
 </body>
 </html>

@@ -41,3 +41,17 @@ plugins:
 # deployment
 host: 0.0.0.0
 port: 4000
+
+# Native editor and development files are not part of the public site.
+exclude:
+  - macOS
+  - tests
+  - scripts
+  - package.json
+  - README.md
+  - docs
+  - Gemfile
+  - Gemfile.lock
+  - Dockerfile
+  - node_modules
+  - vendor

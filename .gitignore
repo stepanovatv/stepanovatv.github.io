@@ -1,3 +1,13 @@
+.DS_Store
+.build/
+build/
+node_modules/
+.swiftpm/
+*.xcuserstate
+.env*
+!.env.example
+
+# Existing blog ignores
 _site
 .sass-cache
 .jekyll-metadata
