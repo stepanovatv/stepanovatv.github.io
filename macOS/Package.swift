@@ -9,6 +9,7 @@ let package = Package(
     targets: [
         .target(name: "ScheduleCore"),
         .executableTarget(name: "ScheduleApp", dependencies: ["ScheduleCore"], resources: [.process("Resources")]),
-        .testTarget(name: "ScheduleCoreTests", dependencies: ["ScheduleCore"])
+        .testTarget(name: "ScheduleCoreTests", dependencies: ["ScheduleCore"]),
+        .testTarget(name: "ScheduleAppTests", dependencies: ["ScheduleApp", "ScheduleCore"])
     ]
 )

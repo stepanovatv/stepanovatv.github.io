@@ -9,6 +9,10 @@ struct ScheduleGrid: View {
     @State private var lastPoint: CGPoint?
     @State private var dragging = false
     @FocusState private var focused: CellAddress?
+    @Environment(\.colorScheme) private var colorScheme
+    private var availabilityColor: Color {
+        colorScheme == .dark ? Color(red: 0.48, green: 0.85, blue: 0.69) : Color(red: 0.08, green: 0.36, blue: 0.28)
+    }
     private let rowHeight: CGFloat = 38
     private let timeWidth: CGFloat = 68
 
@@ -31,7 +35,7 @@ struct ScheduleGrid: View {
                             }
                         }
                         .coordinateSpace(name: "paint-grid")
-                        .gesture(DragGesture(minimumDistance: 3, coordinateSpace: .named("paint-grid"))
+                        .highPriorityGesture(DragGesture(minimumDistance: 3, coordinateSpace: .named("paint-grid"))
                             .onChanged { event in
                                 guard !model.isWorking else { return }
                                 if !dragging {
@@ -59,7 +63,7 @@ struct ScheduleGrid: View {
                                     Text(TimeZoneService.display(date, format: "dd.MM")).fontWeight(.semibold)
                                 }
                                 .font(.callout).frame(width: columnWidth, height: 62)
-                                .background(date == TimeZoneService.dateKey(Date(), zone: schedule.timeZone) ? Color.accentColor.opacity(0.08) : .clear)
+                                .background(date == TimeZoneService.dateKey(Date(), zone: schedule.timeZone) ? availabilityColor.opacity(0.08) : .clear)
                                 .contextMenu {
                                     Button("Отметить весь день занятым") { model.setDay(date, busy: true) }
                                     Button("Очистить весь день") { model.setDay(date, busy: false) }
@@ -93,9 +97,9 @@ struct ScheduleGrid: View {
         let busy = schedule.isBusy(date: date, time: time)
         return Button { if !dragging { model.toggle(date: date, time: time) } } label: {
             Label(busy ? Texts.busy : Texts.free, systemImage: busy ? "minus" : "checkmark")
-                .font(.system(size: 12, weight: .medium)).frame(maxWidth: .infinity, maxHeight: .infinity)
-                .foregroundStyle(busy ? Color.secondary : Color.accentColor)
-                .background(busy ? Color.secondary.opacity(0.09) : Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 5))
+                .font(.system(size: 13, weight: .medium)).frame(maxWidth: .infinity, maxHeight: .infinity)
+                .foregroundStyle(busy ? Color.secondary : availabilityColor)
+                .background(busy ? Color.secondary.opacity(0.09) : availabilityColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 5))
         }
         .buttonStyle(.plain).padding(3)
         .focused($focused, equals: CellAddress(row: row, column: column))
