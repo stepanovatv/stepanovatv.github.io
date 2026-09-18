@@ -22,7 +22,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-@main struct AvailabilityScheduleApp: App {
+@main enum AvailabilityScheduleLauncher {
+    @MainActor static func main() {
+        if CommandLine.arguments.contains("--verify-package") {
+            // A headless packaging check: no editor, user draft, Keychain, or network.
+            guard Bundle.main.bundleURL.pathExtension == "app",
+                  let configuration = AppResources.configuration() else {
+                print("ERROR: the application cannot load its packaged configuration")
+                exit(1)
+            }
+            print("OK: packaged configuration for \(configuration.owner)/\(configuration.repository), branch \(configuration.branch)")
+            return
+        }
+        AvailabilityScheduleApp.main()
+    }
+}
+
+struct AvailabilityScheduleApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
     @StateObject private var model = ScheduleViewModel()
     var body: some Scene {

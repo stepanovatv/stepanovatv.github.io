@@ -17,7 +17,7 @@ struct LocalStorage {
     private func url(_ file: String) -> URL { directory.appendingPathComponent(file) }
     func configuration() -> RepositoryConfiguration {
         if let data = try? Data(contentsOf: url("configuration.json")), let config = try? JSONDecoder().decode(RepositoryConfiguration.self, from: data) { return config }
-        if let url = Bundle.module.url(forResource: "repository-config", withExtension: "json"), let data = try? Data(contentsOf: url), let config = try? JSONDecoder().decode(RepositoryConfiguration.self, from: data) { return config }
+        if let config = AppResources.configuration() { return config }
         return RepositoryConfiguration()
     }
     func saveConfiguration(_ config: RepositoryConfiguration) throws { try save(JSONEncoder().encode(config), file: "configuration.json") }
