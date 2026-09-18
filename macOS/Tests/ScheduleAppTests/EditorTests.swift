@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import Testing
 import ScheduleCore
 @testable import ScheduleApp
@@ -78,5 +79,38 @@ import ScheduleCore
         model.paint(date: "2026-09-14", time: "09:30")
         model.endPaint()
         #expect(model.schedule == original)
+    }
+
+    @Test func layoutIsReusedForEditsAndRebuiltForWeekAndConfiguration() throws {
+        let model = editor()
+        let layout = try #require(model.gridLayout)
+        model.toggle(date: "2026-09-14", time: "09:00")
+        #expect(model.gridLayout === layout)
+        model.undo()
+        #expect(model.gridLayout === layout)
+        model.moveWeek(1)
+        let next = try #require(model.gridLayout)
+        #expect(next !== layout)
+        #expect(next.days.first?.id == "2026-09-21")
+        model.schedule!.slotDurationMinutes = 60
+        #expect(model.gridLayout !== next)
+        #expect(model.gridLayout?.slotTimes.count == 13)
+    }
+
+    @Test func paintBatchPublishesOnceAndRevisitsDoNotRedraw() {
+        let model = editor()
+        model.beginPaint(date: "2026-09-14", time: "09:00")
+        var updates = 0
+        let observation = model.$schedule.dropFirst().sink { _ in updates += 1 }
+        let cells = ["09:30", "10:00", "10:30"].map { SlotReference(date: "2026-09-14", time: $0) }
+        model.paint(cells: cells)
+        #expect(updates == 1)
+        model.paint(cells: cells)
+        #expect(updates == 1)
+        model.endPaint()
+        #expect(model.schedule!.days["2026-09-14"]?.busy.count == 4)
+        model.undo()
+        #expect(model.schedule!.days.isEmpty)
+        observation.cancel()
     }
 }

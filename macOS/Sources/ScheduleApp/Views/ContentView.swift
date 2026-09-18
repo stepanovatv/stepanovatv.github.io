@@ -29,7 +29,7 @@ struct ContentView: View {
             footer.padding(20)
         }
         .frame(minWidth: 850, minHeight: 580)
-        .tint(Color(red: 0.08, green: 0.36, blue: 0.28))
+        .tint(Color(red: 0.03, green: 0.51, blue: 0.28))
         .sheet(isPresented: $model.showingSettings) { SettingsView(model: model) }
         .sheet(isPresented: $showRange) { if let schedule = model.schedule { RangeEditor(model: model, schedule: schedule) } }
         .alert(Texts.conflict, isPresented: $model.hasConflict) {
@@ -60,7 +60,7 @@ struct ContentView: View {
             }
             HStack(spacing: 12) {
                 Button { model.moveWeek(-1) } label: { Image(systemName: "chevron.left") }.help("Предыдущая неделя")
-                Text("\(TimeZoneService.display(model.monday, format: "d MMM")) — \(TimeZoneService.display(TimeZoneService.addDays(model.monday, 6), format: "d MMM yyyy"))")
+                Text(model.weekTitle)
                     .font(.headline).frame(minWidth: 220)
                 Button { model.moveWeek(1) } label: { Image(systemName: "chevron.right") }.help("Следующая неделя")
                 Button("Сегодня") { model.today() }

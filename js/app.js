@@ -1,6 +1,6 @@
-import { browserTimeZone, zonedParts, weekStart, addDays, offsetLabel, validTimeZone } from './timezone.js';
-import { buildWeek, fetchSchedule } from './schedule.js';
-import { ru as t } from './strings.js';
+import { browserTimeZone, zonedParts, weekStart, addDays, offsetLabel, validTimeZone, currentWeek, clampToCurrentWeek } from './timezone.js?v=20260918-fast';
+import { buildWeek, fetchSchedule } from './schedule.js?v=20260918-fast';
+import { ru as t } from './strings.js?v=20260918-fast';
 
 const $ = id => document.getElementById(id);
 const browserZone = browserTimeZone();
@@ -56,7 +56,8 @@ function slotButton(slot, mobile, row, col) {
 function showDetails(slot) {
   const panel = $('slot-detail'); panel.replaceChildren();
   panel.classList.toggle('has-selection', Boolean(slot));
-  if (!slot) { panel.textContent = t.selectHint; return; }
+  panel.hidden = !slot;
+  if (!slot) return;
   const top = document.createElement('div'); top.className = 'detail-top';
   const state = document.createElement('strong'); state.textContent = `${slot.busy ? '−' : '✓'} ${slot.busy ? t.busy : t.free}`;
   const date = document.createElement('span'); date.textContent = `${dateFormat(slot.date, { weekday: 'long', day: 'numeric', month: 'long' })} · ${slot.time}–${slot.endTime}${slot.endDate !== slot.date ? ' (' + dateFormat(slot.endDate, { day: 'numeric', month: 'long' }) + ')' : ''}`;
@@ -79,6 +80,8 @@ function renderDay() {
 
 function render() {
   if (!data) return;
+  monday = clampToCurrentWeek(monday, zone);
+  $('previous-week').disabled = monday <= currentWeek(zone);
   week = buildWeek(data, monday, zone); slotsByID.clear(); selected = null;
   for (const slots of week.byDate.values()) for (const slot of slots) slotsByID.set(slot.id, slot);
   const today = zonedParts(Date.now(), zone).date;
@@ -163,7 +166,11 @@ selector.addEventListener('change', () => {
   try { if (selector.value === 'auto') localStorage.removeItem('availability-timezone'); else localStorage.setItem('availability-timezone', zone); } catch {}
   render(); zoneMessage();
 });
-function navigate(days) { const next = addDays(monday, days); if (next < '1901-01-01' || next > '2099-12-20') return; monday = next; render(); }
+function navigate(days) {
+  const next = addDays(clampToCurrentWeek(monday, zone), days);
+  if (next > '2099-12-20') return;
+  monday = clampToCurrentWeek(next, zone); render();
+}
 $('previous-week').onclick = () => navigate(-7); $('next-week').onclick = () => navigate(7);
 $('current-week').onclick = () => { activeDate = zonedParts(Date.now(), zone).date; monday = weekStart(activeDate); render(); };
 async function load() {
@@ -174,3 +181,13 @@ async function load() {
   finally { $('schedule').setAttribute('aria-busy', 'false'); }
 }
 $('retry').onclick = load; load();
+
+// A tab left open across Monday must not keep showing a past week.
+function checkWeekBoundary() {
+  if (!data) return;
+  if (monday < currentWeek(zone)) render();
+  else $('previous-week').disabled = monday <= currentWeek(zone);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkWeekBoundary(); });
+window.addEventListener('focus', checkWeekBoundary);
+setInterval(checkWeekBoundary, 60000);

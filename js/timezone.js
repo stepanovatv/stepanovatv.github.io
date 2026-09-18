@@ -48,6 +48,15 @@ export function weekStart(date) {
   return addDays(date, -((day + 6) % 7));
 }
 
+export function currentWeek(zone, now = Date.now()) {
+  return weekStart(zonedParts(now, zone).date);
+}
+
+export function clampToCurrentWeek(candidate, zone, now = Date.now()) {
+  const earliest = currentWeek(zone, now);
+  return candidate < earliest ? earliest : candidate;
+}
+
 // Resolve wall time by trying real IANA offsets around that date. Unlike a fixed
 // numeric offset, this accounts for both sides of DST and fractional timezones.
 // Model v1 has no "fold" field: ambiguous source wall times use the first occurrence.

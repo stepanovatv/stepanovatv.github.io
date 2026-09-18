@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 import ScheduleCore
 
+struct SlotReference: Hashable { let date: String; let time: String }
+
 @MainActor final class ScheduleViewModel: ObservableObject {
     @Published var schedule: Schedule?
     @Published var configuration: RepositoryConfiguration
@@ -16,6 +18,9 @@ import ScheduleCore
     private var syncedAt = Date()
     private let storage = LocalStorage()
     private let keychain = KeychainService()
+    private let draftWriter = DraftWriter()
+    private var draftRevision = 0
+    private var layoutCache: WeekGridLayout?
     private var paintBefore: Schedule?
     private var paintValue = false
     private var visited = Set<String>()
@@ -29,7 +34,14 @@ import ScheduleCore
     var canUndo: Bool { history.canUndo && !isWorking }
     var canRedo: Bool { history.canRedo && !isWorking }
     var canPublish: Bool { isDirty && !isWorking && paintBefore == nil }
-    var dates: [String] { (0..<7).map { TimeZoneService.addDays(monday, $0) } }
+    var gridLayout: WeekGridLayout? {
+        guard let schedule else { return nil }
+        let key = WeekGridLayout.Key(monday: monday, schedule: schedule)
+        if layoutCache?.key != key { layoutCache = WeekGridLayout(monday: monday, schedule: schedule) }
+        return layoutCache
+    }
+    var dates: [String] { gridLayout?.days.map(\.id) ?? [] }
+    var weekTitle: String { gridLayout?.title ?? monday }
     var syncLabel: String { let f = DateFormatter(); f.locale = Locale(identifier: "ru_RU"); f.timeZone = schedule?.timeZone; f.dateFormat = "d MMMM, HH:mm"; return f.string(from: syncedAt) }
 
     func start() async {
@@ -69,9 +81,18 @@ import ScheduleCore
     }
     private func cache() {
         guard let schedule, let remote else { return }
-        do { try storage.saveDraft(DraftSnapshot(identity: configuration.identity, remote: remote, draft: schedule, syncedAt: syncedAt)) }
-        catch { errorMessage = error.localizedDescription }
+        draftRevision += 1
+        let revision = draftRevision
+        let snapshot = DraftSnapshot(identity: configuration.identity, remote: remote, draft: schedule, syncedAt: syncedAt)
+        draftWriter.enqueue(snapshot) { [weak self] error in
+            guard let error else { return }
+            Task { @MainActor in
+                guard let self, self.draftRevision == revision else { return }
+                self.errorMessage = error
+            }
+        }
     }
+    func flushDrafts() throws { try draftWriter.flush() }
     private func changed() { status = isDirty ? Texts.dirty : Texts.current; cache() }
     func edit(_ action: (inout Schedule) -> Void) {
         guard !isWorking, var value = schedule else { return }; let before = value; action(&value)
@@ -88,8 +109,18 @@ import ScheduleCore
         paintBefore = schedule; paintValue = !schedule.isBusy(date: date, time: time); visited.removeAll(); paint(date: date, time: time)
     }
     func paint(date: String, time: String) {
-        guard paintBefore != nil, visited.insert(date + time).inserted else { return }
-        schedule?.setBusy(paintValue, date: date, times: [time]); status = Texts.dirty
+        paint(cells: [SlotReference(date: date, time: time)])
+    }
+    func paint(cells: [SlotReference]) {
+        guard paintBefore != nil, var value = schedule else { return }
+        var modified = false
+        for cell in cells where visited.insert(cell.date + cell.time).inserted {
+            guard value.isBusy(date: cell.date, time: cell.time) != paintValue else { continue }
+            value.setBusy(paintValue, date: cell.date, times: [cell.time]); modified = true
+        }
+        guard modified else { return }
+        schedule = value
+        if status != Texts.dirty { status = Texts.dirty }
     }
     func endPaint() {
         guard let before = paintBefore, let schedule else { return }; paintBefore = nil
@@ -109,6 +140,7 @@ import ScheduleCore
     func saveSettings(_ value: RepositoryConfiguration, token: String, removeToken: Bool) async -> Bool {
         guard !isWorking, value.isValid else { errorMessage = "Заполните параметры подключения и HTTPS-ссылку на расписание."; return false }
         do {
+            try await draftWriter.flushAsync()
             if removeToken { try keychain.delete(account: value.identity) }
             else if !token.isEmpty { try keychain.save(token.trimmingCharacters(in: .whitespacesAndNewlines), account: value.identity) }
             try storage.saveConfiguration(value)

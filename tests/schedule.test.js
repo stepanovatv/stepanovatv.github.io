@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { validateSchedule, parseSchedule, serializeSchedule, slotTimes, isBusy, buildWeek, fetchSchedule } from '../js/schedule.js';
-import { wallToInstant, zonedParts, addDays, weekStart, offsetLabel } from '../js/timezone.js';
+import { wallToInstant, zonedParts, addDays, weekStart, offsetLabel, currentWeek, clampToCurrentWeek } from '../js/timezone.js';
 import { migrateLegacy } from '../scripts/migrate-legacy.mjs';
 const fixture = () => ({ version: 1, sourceTimeZone: 'Asia/Yekaterinburg', slotDurationMinutes: 30, dayStart:'09:00', dayEnd:'22:00', updatedAt:'2026-09-17T10:30:00Z', days: { '2026-09-21': {busy:['09:00','13:00']} } });
 
@@ -62,6 +62,19 @@ test('DST fold retains repeated wall times as distinct slots', () => {
 test('month, year, leap day and Monday arithmetic', () => {
   assert.equal(addDays('2026-12-31',1),'2027-01-01'); assert.equal(addDays('2024-02-28',1),'2024-02-29');
   assert.equal(weekStart('2027-01-01'),'2026-12-28'); assert.equal(weekStart('2026-09-20'),'2026-09-14');
+});
+test('navigation allows the current and future weeks, never past weeks', () => {
+  const now = Date.parse('2026-09-18T10:00:00Z');
+  assert.equal(currentWeek('Asia/Yekaterinburg', now), '2026-09-14');
+  assert.equal(clampToCurrentWeek('2026-09-07', 'Asia/Yekaterinburg', now), '2026-09-14');
+  assert.equal(clampToCurrentWeek('2026-09-14', 'Asia/Yekaterinburg', now), '2026-09-14');
+  assert.equal(clampToCurrentWeek('2026-09-21', 'Asia/Yekaterinburg', now), '2026-09-21');
+});
+test('earliest week follows the selected timezone and rolls over at New Year', () => {
+  const boundary = Date.parse('2027-01-03T22:00:00Z');
+  assert.equal(currentWeek('Europe/Moscow', boundary), '2027-01-04');
+  assert.equal(currentWeek('America/Los_Angeles', boundary), '2026-12-28');
+  assert.equal(clampToCurrentWeek('2026-12-28', 'Europe/Moscow', boundary), '2027-01-04');
 });
 test('invalid JSON, extra private fields, version, timezone, dates, slots, duplicates', () => {
   assert.throws(()=>parseSchedule('{'));

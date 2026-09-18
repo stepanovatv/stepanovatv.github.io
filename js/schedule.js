@@ -1,4 +1,4 @@
-import { validTimeZone, validDate, addDays, wallToInstant, zonedParts } from './timezone.js';
+import { validTimeZone, validDate, addDays, wallToInstant, zonedParts } from './timezone.js?v=20260918-fast';
 
 export const timeMinutes = time => Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
 export const timeString = minutes => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;

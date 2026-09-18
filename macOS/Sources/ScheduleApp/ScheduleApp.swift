@@ -8,6 +8,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if model.isWorking {
             let alert = NSAlert(); alert.messageText = "Дождитесь завершения синхронизации"; alert.informativeText = "Это займёт несколько секунд."; alert.runModal(); return .terminateCancel
         }
+        model.endPaint()
+        do { try model.flushDrafts() }
+        catch {
+            let alert = NSAlert(); alert.messageText = "Черновик не сохранён"
+            alert.informativeText = error.localizedDescription; alert.runModal(); return .terminateCancel
+        }
         guard model.isDirty else { return .terminateNow }
         let alert = NSAlert(); alert.messageText = "Есть неопубликованные изменения"
         alert.informativeText = "Черновик сохранён на этом Mac. Чтобы изменения появились на сайте, вернитесь в приложение и нажмите «Опубликовать расписание»."
