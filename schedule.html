@@ -3,31 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#155747">
+  <meta name="theme-color" content="#087f4b">
   <meta name="description" content="Свободные окна для занятий — расписание в вашей часовой зоне.">
   <title>Расписание занятий</title>
-  <link rel="icon" href="./assets/calendar.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./css/style.css">
-  <script type="module" src="./js/app.js"></script>
+  <link rel="icon" href="./assets/calendar.svg?v=20260918-compact" type="image/svg+xml">
+  <link rel="stylesheet" href="./css/style.css?v=20260918-compact">
+  <script type="module" src="./js/app.js?v=20260918-compact"></script>
 </head>
 <body>
   <a class="skip" href="#schedule">К расписанию</a>
   <main>
     <header class="page-header">
-      <div class="eyebrow"><img src="./assets/calendar.svg" width="24" height="24" alt=""> РАСПИСАНИЕ ЗАНЯТИЙ</div>
-      <h1>Время для занятия</h1>
-      <p class="intro">Найдите свободное окно в удобное для вас время.</p>
+      <h1><img src="./assets/calendar.svg?v=20260918-compact" width="28" height="28" alt="">Расписание занятий</h1>
+      <div class="zone-control">
+        <label for="timezone">Часовая зона</label>
+        <select id="timezone" aria-describedby="timezone-message"></select>
+        <p id="timezone-message">Определяем часовую зону…</p>
+      </div>
     </header>
-    <section class="zone-panel" aria-label="Часовая зона">
-      <div><span class="small-label">ВАШЕ МЕСТНОЕ ВРЕМЯ</span><p id="timezone-message">Определяем часовую зону…</p></div>
-      <div class="zone-control"><label for="timezone">Часовая зона</label><select id="timezone"></select></div>
-    </section>
     <section id="schedule" tabindex="-1" aria-label="Расписание доступности" aria-busy="true">
       <div class="schedule-toolbar">
         <div><span class="small-label" id="month-label"></span><h2 id="week-label">Расписание</h2></div>
         <nav class="week-nav" aria-label="Навигация по неделям">
           <button id="previous-week" class="icon-button" aria-label="Предыдущая неделя">←</button>
-          <button id="current-week">Текущая неделя</button>
+          <button id="current-week" aria-label="Текущая неделя" title="Текущая неделя"><span class="current-week-label">Текущая неделя</span><span class="current-week-icon" aria-hidden="true">↺</span></button>
           <button id="next-week" class="icon-button" aria-label="Следующая неделя">→</button>
         </nav>
       </div>
@@ -41,7 +40,7 @@
       </div>
       <aside id="slot-detail" class="slot-detail" aria-live="polite">Выберите окно, чтобы посмотреть подробности.</aside>
     </section>
-    <footer><span id="updated"></span><span>Время преподавателя: Оренбург</span></footer>
+    <footer><span id="updated"></span></footer>
   </main>
   <noscript><p class="load-status">Для просмотра расписания включите JavaScript в браузере.</p></noscript>
 </body>

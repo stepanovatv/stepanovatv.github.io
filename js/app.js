@@ -10,9 +10,9 @@ const dateFormat = (date, options) => new Intl.DateTimeFormat('ru-RU', { timeZon
 const slotsByID = new Map();
 const selector = $('timezone');
 function option(label, value) { const o = document.createElement('option'); o.value = value; o.textContent = label; selector.append(o); }
-option(`Автоматически — ${browserZone}`, 'auto');
-option('Оренбург — Asia/Yekaterinburg', 'Asia/Yekaterinburg');
-option('Москва — Europe/Moscow', 'Europe/Moscow');
+option('Автоматически', 'auto');
+option('Оренбург', 'Asia/Yekaterinburg');
+option('Москва', 'Europe/Moscow');
 option(`Часовая зона браузера — ${browserZone}`, browserZone);
 const zones = Intl.supportedValuesOf ? Intl.supportedValuesOf('timeZone') : ['Asia/Tbilisi', 'Europe/London', 'Europe/Berlin', 'America/New_York', 'Asia/Kolkata', 'Asia/Tokyo', 'Pacific/Auckland'];
 for (const z of [...new Set([...zones, 'UTC'])].sort()) if (![browserZone, 'Asia/Yekaterinburg', 'Europe/Moscow'].includes(z)) option(z, z);
@@ -23,7 +23,12 @@ try {
 monday = weekStart(zonedParts(Date.now(), zone).date); activeDate = zonedParts(Date.now(), zone).date;
 
 function zoneMessage() {
-  $('timezone-message').textContent = `${selector.value === 'auto' ? t.localTime : t.chosenTime} ${zone} (${offsetLabel(Date.now(), zone)}).`;
+  const automatic = selector.value === 'auto';
+  const offset = offsetLabel(Date.now(), zone);
+  const message = $('timezone-message');
+  message.textContent = `${zone} · ${offset}`;
+  message.title = `${automatic ? t.localTime : t.chosenTime} ${zone} (${offset}).`;
+  message.setAttribute('aria-label', message.title);
 }
 zoneMessage();
 
@@ -40,7 +45,8 @@ function slotButton(slot, mobile, row, col) {
   button.setAttribute('aria-label', full); button.title = full;
   if (mobile) { const label = document.createElement('span'); label.className = 'slot-time'; label.textContent = range; button.append(label); }
   const stateLabel = document.createElement('span'); stateLabel.className = 'slot-state';
-  stateLabel.textContent = `${slot.busy ? '−' : '✓'} ${state}`; button.append(stateLabel);
+  stateLabel.textContent = slot.busy ? '−' : '✓';
+  stateLabel.setAttribute('aria-hidden', 'true'); button.append(stateLabel);
   // Repeated target wall times during a fall-back retain their distinct instants.
   const repeated = week.byDate.get(slot.date).filter(s => s.time === slot.time).length > 1;
   if (repeated) { const badge = document.createElement('small'); badge.textContent = offset; button.append(badge); }
@@ -56,7 +62,7 @@ function showDetails(slot) {
   const date = document.createElement('span'); date.textContent = `${dateFormat(slot.date, { weekday: 'long', day: 'numeric', month: 'long' })} · ${slot.time}–${slot.endTime}${slot.endDate !== slot.date ? ' (' + dateFormat(slot.endDate, { day: 'numeric', month: 'long' }) + ')' : ''}`;
   top.append(state, date);
   const meta = document.createElement('div'); meta.className = 'detail-meta';
-  meta.textContent = `${zone} (${offsetLabel(slot.start, zone)}${offsetLabel(slot.end, zone) !== offsetLabel(slot.start, zone) ? ' → ' + offsetLabel(slot.end, zone) : ''}) · ${data.slotDurationMinutes} ${t.duration}. ${t.source}: ${dateFormat(slot.sourceDate, { day: 'numeric', month: 'short' })}, ${slot.sourceTime} (${data.sourceTimeZone}).`;
+  meta.textContent = `${zone} (${offsetLabel(slot.start, zone)}${offsetLabel(slot.end, zone) !== offsetLabel(slot.start, zone) ? ' → ' + offsetLabel(slot.end, zone) : ''}) · ${data.slotDurationMinutes} ${t.duration}.`;
   panel.append(top, meta);
   const close = document.createElement('button'); close.className = 'close-detail'; close.textContent = 'Снять выделение';
   close.onclick = () => { selected = null; document.querySelectorAll('.slot').forEach(b => b.setAttribute('aria-pressed', 'false')); showDetails(null); };

@@ -2,16 +2,16 @@
   color-scheme:light;
   --ink:#19362f;
   --muted:#5e6b67;
-  --green:#155747;
+  --green:#087f4b;
   --line:#dce4e0;
-  --free:#dff0e8;
-  --free-ink:#155442;
+  --free:#c2f2d8;
+  --free-ink:#087347;
   --busy:#f1f3f3;
-  --cross:#edf5f1;
+  --cross:#edf9f2;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   font-size:16px;
   color:var(--ink);
-  background:#f6f8f7
+  background:#fff
 }
 * {
   box-sizing:border-box
@@ -50,42 +50,27 @@ button,select {
 main {
   max-width:1240px;
   margin:auto;
-  padding:30px 18px 24px
+  padding:18px 18px 24px
 }
 .page-header {
-  margin-bottom:26px
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:16px
 }
-.eyebrow {
+h1 {
   display:flex;
   align-items:center;
   gap:10px;
-  font-size:.75rem;
-  letter-spacing:.11em;
-  font-weight:700;
-  color:var(--green)
-}
-h1 {
-  font-size:2.1rem;
-  line-height:1.15;
-  letter-spacing:-.055em;
-  margin:20px 0 12px;
+  font-size:1.05rem;
+  line-height:1.3;
+  letter-spacing:-.02em;
+  margin:0;
   font-weight:650
 }
-.intro {
-  color:var(--muted);
-  line-height:1.6;
-  margin:0;
-  font-size:1rem
-}
-.zone-panel {
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:18px;
-  background:#fff;
-  display:flex;
-  gap:20px;
-  flex-direction:column;
-  margin-bottom:28px
+h1 img {
+  flex-shrink:0
 }
 .small-label {
   font-size:.75rem;
@@ -93,26 +78,29 @@ h1 {
   font-weight:650;
   color:var(--muted)
 }
-.zone-panel p {
-  margin:8px 0 0;
-  line-height:1.55;
-  font-size:.9rem;
-  max-width:590px
+#timezone-message {
+  margin:0;
+  line-height:1.3;
+  font-size:.75rem;
+  color:var(--muted);
+  overflow-wrap:anywhere
 }
 .zone-control {
   display:flex;
   flex-direction:column;
-  gap:7px;
-  min-width:260px
+  gap:4px;
+  width:54%;
+  min-width:0;
+  flex-shrink:0
 }
 .zone-control label {
-  font-size:.85rem;
+  font-size:.75rem;
   color:var(--muted)
 }
 select {
   width:100%;
-  padding:10px 34px 10px 12px;
-  font-size:.9rem;
+  padding:8px 24px 8px 10px;
+  font-size:.85rem;
   max-width:100%
 }
 #schedule {
@@ -123,7 +111,7 @@ select {
   flex-wrap:wrap;
   justify-content:space-between;
   align-items:center;
-  gap:18px
+  gap:12px
 }
 h2 {
   font-size:1.55rem;
@@ -138,6 +126,9 @@ h2 {
 .week-nav button {
   font-size:.85rem
 }
+.current-week-icon {
+  display:none
+}
 .icon-button {
   font-size:1.2rem!important;
   width:44px;
@@ -149,7 +140,7 @@ h2 {
   flex-wrap:wrap;
   gap:18px;
   font-size:.85rem;
-  margin:22px 0 18px;
+  margin:16px 0 12px;
   color:var(--muted)
 }
 .legend span {
@@ -243,31 +234,35 @@ h2 {
   background:repeating-linear-gradient(135deg,#f0f3f2 0px,#f0f3f2 5px,#e9eeeb 5px,#e9eeeb 6px)
 }
 .slot:hover,.slot.hovered {
-  box-shadow:inset 0 0 0 1.5px #5b9b83;
-  background:#cfe8dc
+  box-shadow:inset 0 0 0 1.5px var(--green);
+  background:#acebc9
 }
 .slot.busy:hover {
   background:#e1e8e4
 }
 .slot[aria-pressed=true] {
   box-shadow:inset 0 0 0 2px var(--green);
-  background:#c4e4d5
+  background:#96e5b9
 }
 .day-slots .slot {
-  min-height:75px;
-  align-items:flex-start;
-  padding:13px;
-  flex-direction:column;
+  min-height:54px;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px;
+  flex-wrap:wrap;
   gap:7px;
   text-align:left
 }
 .day-slots .slot .slot-time {
-  font-size:1rem;
+  font-size:.9rem;
   font-variant-numeric:tabular-nums;
   font-weight:600
 }
 .day-slots .slot .slot-state {
-  font-size:.8rem
+  font-size:.9rem
+}
+.day-slots .slot small {
+  flex-basis:100%
 }
 .desktop-schedule {
   display:none
@@ -332,19 +327,13 @@ footer {
 }
 @media(min-width:700px) {
   main {
-    padding:45px 30px 24px
+    padding:24px 30px
   }
   .page-header {
-    margin-bottom:30px
+    margin-bottom:20px
   }
   h1 {
-    font-size:2.65rem
-  }
-  .zone-panel {
-    padding:20px 24px;
-    flex-direction:row;
-    justify-content:space-between;
-    align-items:center
+    font-size:1.25rem
   }
   .zone-control {
     width:300px;
@@ -382,7 +371,7 @@ footer {
     font-size:.8rem;
     font-weight:500;
     text-align:center;
-    padding:18px 3px;
+    padding:14px 3px;
     color:var(--muted);
     border-bottom:1px solid var(--line)
   }
@@ -444,7 +433,7 @@ footer {
     display:block
   }
   h2 {
-    font-size:1.7rem
+    font-size:1.5rem
   }
 }
 @media(prefers-reduced-motion:reduce) {
@@ -456,12 +445,47 @@ footer {
   padding:0 4px
 }
 .slot-state {
-  white-space:nowrap
+  white-space:nowrap;
+  font-size:.85rem;
+  opacity:.8
 }
 .close-detail {
   display:none
 }
 @media(max-width:699px) {
+  .schedule-toolbar {
+    gap:8px
+  }
+  h2 {
+    font-size:1.2rem
+  }
+  .week-nav {
+    gap:4px
+  }
+  #current-week {
+    width:44px;
+    padding:0;
+    font-size:1.2rem
+  }
+  .current-week-label {
+    display:none
+  }
+  .current-week-icon {
+    display:inline
+  }
+  .legend {
+    margin:12px 0 8px
+  }
+  .day-tabs {
+    padding:0 0 12px
+  }
+  .day-tabs button {
+    padding:9px 0
+  }
+  .mobile-schedule h3 {
+    font-size:1rem;
+    margin:2px 0 10px
+  }
   .slot-detail.has-selection {
     position:fixed;
     z-index:10;
@@ -484,10 +508,13 @@ footer {
 }
 @media(max-width:360px) {
   main {
-    padding:24px 12px
+    padding:16px 12px
   }
   h1 {
-    font-size:1.9rem
+    font-size:.95rem
+  }
+  h1 img {
+    display:none
   }
   .day-slots {
     grid-template-columns:1fr
