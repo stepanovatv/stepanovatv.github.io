@@ -22,7 +22,9 @@
       "busy" : [
         "16:30",
         "17:00",
-        "17:30"
+        "17:30",
+        "19:00",
+        "19:30"
       ]
     },
     "2026-09-17" : {
@@ -199,6 +201,6 @@
   },
   "slotDurationMinutes" : 30,
   "sourceTimeZone" : "Asia/Yekaterinburg",
-  "updatedAt" : "2026-09-19T12:27:04Z",
+  "updatedAt" : "2026-09-19T12:28:15Z",
   "version" : 1
 }
