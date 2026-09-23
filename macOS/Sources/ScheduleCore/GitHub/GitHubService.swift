@@ -61,6 +61,18 @@ public struct GitHubService {
               let decoded = Data(base64Encoded: result.content, options: .ignoreUnknownCharacters) else { throw GitHubError.invalidResponse }
         return RemoteSchedule(schedule: try Schedule.decode(decoded), sha: result.sha)
     }
+    public func fetch(tokenProvider: () throws -> String) async throws -> RemoteSchedule {
+        let token: String
+        do { token = try tokenProvider() }
+        catch {
+            // A locked Keychain must not prevent reading a public schedule.
+            // Nothing is changed in Keychain, and publishing still requires its token.
+            let credentialError = error
+            do { return try await fetch(token: "") }
+            catch { throw credentialError }
+        }
+        return try await fetch(token: token)
+    }
     public func publish(_ schedule: Schedule, expectedSHA: String, token: String, now: Date = Date()) async throws -> RemoteSchedule {
         guard !token.isEmpty else { throw GitHubError.unauthorized }
         guard !expectedSHA.isEmpty else { throw GitHubError.invalidResponse }

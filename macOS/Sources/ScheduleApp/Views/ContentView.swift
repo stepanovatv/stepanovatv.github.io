@@ -29,6 +29,8 @@ struct ContentView: View {
             footer.padding(20)
         }
         .frame(minWidth: 850, minHeight: 580)
+        .background(Color.white)
+        .preferredColorScheme(.light)
         .tint(Color(red: 0.03, green: 0.51, blue: 0.28))
         .sheet(isPresented: $model.showingSettings) { SettingsView(model: model) }
         .sheet(isPresented: $showRange) { if let schedule = model.schedule { RangeEditor(model: model, schedule: schedule) } }
@@ -65,16 +67,23 @@ struct ContentView: View {
                 Button { model.moveWeek(1) } label: { Image(systemName: "chevron.right") }.help("Следующая неделя")
                 Button("Сегодня") { model.today() }
                 Spacer()
-                Menu {
-                    Button("Изменить диапазон…") { showRange = true }
-                    Button("Копировать предыдущую неделю…") { confirmCopy = true }
-                    Divider()
-                    Button("Загрузить опубликованную версию…") {
+                HStack(spacing: 8) {
+                    actionButton(Texts.editRange, icon: "slider.horizontal.3") { showRange = true }
+                    actionButton(Texts.copyWeek, icon: "doc.on.doc") { confirmCopy = true }
+                    Divider().frame(height: 22).padding(.horizontal, 2)
+                    actionButton(Texts.reload, icon: "arrow.clockwise") {
                         if model.isDirty { confirmReload = true } else { Task { await model.refresh() } }
                     }
-                } label: { Label("Действия", systemImage: "ellipsis.circle") }.menuStyle(.borderlessButton).fixedSize()
+                }
             }.disabled(model.isWorking || model.schedule == nil)
         }
+    }
+    private func actionButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: icon).labelStyle(.iconOnly)
+                .font(.system(size: 16, weight: .medium)).frame(width: 30, height: 28)
+        }
+        .buttonStyle(.bordered).help(title).accessibilityLabel(title)
     }
     private var footer: some View {
         HStack(alignment: .center) {

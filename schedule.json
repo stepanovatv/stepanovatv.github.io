@@ -215,6 +215,7 @@
   },
   "slotDurationMinutes" : 30,
   "sourceTimeZone" : "Asia/Yekaterinburg",
-  "updatedAt" : "2026-09-23T16:45:23Z",
-  "version" : 1
+  "updatedAt" : "2026-09-23T17:14:28Z",
+  "version" : 2,
+  "defaultBusyWeekdays" : [6, 7]
 }

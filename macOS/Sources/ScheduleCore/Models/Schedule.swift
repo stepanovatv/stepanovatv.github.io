@@ -18,11 +18,41 @@ public struct Schedule: Codable, Equatable, Sendable {
     public var dayEnd: String
     public var updatedAt: String
     public var days: [String: ScheduleDay]
+    /// ISO weekdays (Monday = 1). An explicit date replaces this default entirely.
+    public var defaultBusyWeekdays: [Int]
 
-    public init(version: Int = 1, sourceTimeZone: String = "Asia/Yekaterinburg", slotDurationMinutes: Int = 30,
-                dayStart: String = "09:00", dayEnd: String = "22:00", updatedAt: String = "2026-09-17T00:00:00Z", days: [String: ScheduleDay] = [:]) {
+    public init(version: Int = 2, sourceTimeZone: String = "Asia/Yekaterinburg", slotDurationMinutes: Int = 30,
+                dayStart: String = "09:00", dayEnd: String = "22:00", updatedAt: String = "2026-09-17T00:00:00Z", days: [String: ScheduleDay] = [:], defaultBusyWeekdays: [Int]? = nil) {
         self.version = version; self.sourceTimeZone = sourceTimeZone; self.slotDurationMinutes = slotDurationMinutes
         self.dayStart = dayStart; self.dayEnd = dayEnd; self.updatedAt = updatedAt; self.days = days
+        self.defaultBusyWeekdays = defaultBusyWeekdays ?? (version == 2 ? [6, 7] : [])
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case version, sourceTimeZone, slotDurationMinutes, dayStart, dayEnd, updatedAt, days, defaultBusyWeekdays
+    }
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        version = try values.decode(Int.self, forKey: .version)
+        sourceTimeZone = try values.decode(String.self, forKey: .sourceTimeZone)
+        slotDurationMinutes = try values.decode(Int.self, forKey: .slotDurationMinutes)
+        dayStart = try values.decode(String.self, forKey: .dayStart)
+        dayEnd = try values.decode(String.self, forKey: .dayEnd)
+        updatedAt = try values.decode(String.self, forKey: .updatedAt)
+        days = try values.decode([String: ScheduleDay].self, forKey: .days)
+        // Old files and local drafts retain their original meaning, including free weekends.
+        defaultBusyWeekdays = version == 1 ? [] : try values.decode([Int].self, forKey: .defaultBusyWeekdays)
+    }
+    public func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(version, forKey: .version)
+        try values.encode(sourceTimeZone, forKey: .sourceTimeZone)
+        try values.encode(slotDurationMinutes, forKey: .slotDurationMinutes)
+        try values.encode(dayStart, forKey: .dayStart)
+        try values.encode(dayEnd, forKey: .dayEnd)
+        try values.encode(updatedAt, forKey: .updatedAt)
+        try values.encode(days, forKey: .days)
+        if version == 2 { try values.encode(defaultBusyWeekdays, forKey: .defaultBusyWeekdays) }
     }
 
     public var timeZone: TimeZone { TimeZone(identifier: sourceTimeZone)! }
@@ -43,7 +73,9 @@ public struct Schedule: Codable, Equatable, Sendable {
     }
 
     public func validate() throws {
-        guard version == 1, sourceTimeZone.contains("/") || sourceTimeZone == "UTC",
+        guard (version == 1 || version == 2), (version == 2 || defaultBusyWeekdays.isEmpty),
+              defaultBusyWeekdays.allSatisfy({ (1...7).contains($0) }), Set(defaultBusyWeekdays).count == defaultBusyWeekdays.count,
+              sourceTimeZone.contains("/") || sourceTimeZone == "UTC",
               TimeZone(identifier: sourceTimeZone) != nil,
               let start = Self.minutes(dayStart), let end = Self.minutes(dayEnd), start < end,
               (5...240).contains(slotDurationMinutes), (end - start) % slotDurationMinutes == 0,
@@ -62,7 +94,8 @@ public struct Schedule: Codable, Equatable, Sendable {
         do {
             // Reject unknown fields so private annotations cannot silently enter the public file.
             guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  Set(json.keys) == Set(["version", "sourceTimeZone", "slotDurationMinutes", "dayStart", "dayEnd", "updatedAt", "days"]),
+                  let version = json["version"] as? Int,
+                  Set(json.keys) == Set(["version", "sourceTimeZone", "slotDurationMinutes", "dayStart", "dayEnd", "updatedAt", "days"] + (version == 2 ? ["defaultBusyWeekdays"] : [])),
                   let days = json["days"] as? [String: [String: Any]], days.values.allSatisfy({ Set($0.keys) == ["busy"] })
             else { throw ScheduleError.invalidData }
             let value = try JSONDecoder().decode(Schedule.self, from: data); try value.validate(); return value
@@ -72,16 +105,23 @@ public struct Schedule: Codable, Equatable, Sendable {
         try validate(); let encoder = JSONEncoder(); encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
         return try encoder.encode(self) + Data([10])
     }
-    public func isBusy(date: String, time: String) -> Bool { days[date]?.busy.contains(time) ?? false }
+    public func isDefaultBusy(date: String) -> Bool {
+        !defaultBusyWeekdays.isEmpty && defaultBusyWeekdays.contains(TimeZoneService.isoWeekday(date))
+    }
+    public func isBusy(date: String, time: String) -> Bool {
+        days[date]?.busy.contains(time) ?? isDefaultBusy(date: date)
+    }
     public mutating func setBusy(_ busy: Bool, date: String, times: [String]) {
-        var values = Set(days[date]?.busy ?? [])
+        let defaults = isDefaultBusy(date: date) ? Set(slotTimes) : []
+        var values = days[date].map { Set($0.busy) } ?? defaults
         if busy { values.formUnion(times) } else { values.subtract(times) }
-        if values.isEmpty { days.removeValue(forKey: date) } else { days[date] = ScheduleDay(busy: values.sorted()) }
+        // An empty weekend override must survive saving, reload, and copying weeks.
+        if values == defaults { days.removeValue(forKey: date) } else { days[date] = ScheduleDay(busy: values.sorted()) }
     }
     public mutating func copyPreviousWeek(to monday: String) {
         for i in 0..<7 {
             let target = TimeZoneService.addDays(monday, i), source = TimeZoneService.addDays(monday, i - 7)
-            if let day = days[source], !day.busy.isEmpty { days[target] = day } else { days.removeValue(forKey: target) }
+            if let day = days[source] { days[target] = day } else { days.removeValue(forKey: target) }
         }
     }
 }

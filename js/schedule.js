@@ -1,4 +1,4 @@
-import { validTimeZone, validDate, addDays, wallToInstant, zonedParts } from './timezone.js?v=20260918-fast';
+import { validTimeZone, validDate, addDays, wallToInstant, zonedParts } from './timezone.js?v=20260923-weekends';
 
 export const timeMinutes = time => Number(time.slice(0, 2)) * 60 + Number(time.slice(3));
 export const timeString = minutes => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
@@ -14,8 +14,14 @@ export function slotTimes(schedule) {
 
 export function validateSchedule(data) {
   const fail = () => { throw new TypeError('Invalid schedule.json'); };
-  if (!object(data) || !exactKeys(data, ['version', 'sourceTimeZone', 'slotDurationMinutes', 'dayStart', 'dayEnd', 'updatedAt', 'days'])) fail();
-  if (data.version !== 1 || !validTimeZone(data.sourceTimeZone) || !time(data.dayStart) || !time(data.dayEnd)) fail();
+  if (!object(data)) fail();
+  const keys = ['version', 'sourceTimeZone', 'slotDurationMinutes', 'dayStart', 'dayEnd', 'updatedAt', 'days'];
+  if (data.version === 2) keys.push('defaultBusyWeekdays');
+  if (!exactKeys(data, keys) || ![1, 2].includes(data.version)
+    || !validTimeZone(data.sourceTimeZone) || !time(data.dayStart) || !time(data.dayEnd)) fail();
+  if (data.version === 2 && (!Array.isArray(data.defaultBusyWeekdays)
+    || data.defaultBusyWeekdays.some(day => !Number.isInteger(day) || day < 1 || day > 7)
+    || new Set(data.defaultBusyWeekdays).size !== data.defaultBusyWeekdays.length)) fail();
   const duration = data.slotDurationMinutes, span = timeMinutes(data.dayEnd) - timeMinutes(data.dayStart);
   if (!Number.isInteger(duration) || duration < 5 || duration > 240 || span <= 0 || span % duration !== 0) fail();
   if (typeof data.updatedAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(data.updatedAt)
@@ -32,7 +38,13 @@ export function validateSchedule(data) {
 
 export function parseSchedule(json) { return validateSchedule(JSON.parse(json)); }
 export function serializeSchedule(data) { return JSON.stringify(validateSchedule(data), null, 2) + '\n'; }
-export function isBusy(schedule, date, time) { return schedule.days[date]?.busy.includes(time) ?? false; }
+export function isBusy(schedule, date, time) {
+  // Defaults use the Orenburg source date, never the visitor's converted weekday.
+  // Even an empty explicit day overrides the whole default, allowing free weekends.
+  if (Object.hasOwn(schedule.days, date)) return schedule.days[date].busy.includes(time);
+  const isoWeekday = (new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7 + 1;
+  return schedule.version === 2 && schedule.defaultBusyWeekdays.includes(isoWeekday);
+}
 
 export function buildWeek(schedule, monday, zone) {
   const dates = Array.from({ length: 7 }, (_, i) => addDays(monday, i));

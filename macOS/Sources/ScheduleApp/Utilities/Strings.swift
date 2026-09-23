@@ -11,4 +11,7 @@ enum Texts {
     static let free = "Свободно"
     static let busy = "Занято"
     static let developerSettings = "Настройки разработчика"
+    static let editRange = "Изменить диапазон"
+    static let copyWeek = "Копировать предыдущую неделю"
+    static let reload = "Загрузить опубликованную версию"
 }

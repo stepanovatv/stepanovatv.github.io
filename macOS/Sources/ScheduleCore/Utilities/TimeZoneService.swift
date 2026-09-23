@@ -1,6 +1,15 @@
 import Foundation
 
 public enum TimeZoneService {
+    /// Weekday of a source calendar date, independent of the computer's timezone.
+    /// Numeric components avoid creating date formatters for every grid cell.
+    public static func isoWeekday(_ value: String) -> Int {
+        let numbers = value.split(separator: "-").compactMap { Int($0) }
+        guard numbers.count == 3 else { return 0 }
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        guard let date = calendar.date(from: DateComponents(year: numbers[0], month: numbers[1], day: numbers[2])) else { return 0 }
+        return (calendar.component(.weekday, from: date) + 5) % 7 + 1
+    }
     private static func dateFormatter(zone: TimeZone = TimeZone(secondsFromGMT: 0)!) -> DateFormatter {
         let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.calendar = Calendar(identifier: .gregorian)
         f.timeZone = zone; f.dateFormat = "yyyy-MM-dd"; f.isLenient = false; return f

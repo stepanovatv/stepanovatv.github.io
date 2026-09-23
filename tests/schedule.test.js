@@ -78,7 +78,7 @@ test('earliest week follows the selected timezone and rolls over at New Year', (
 });
 test('invalid JSON, extra private fields, version, timezone, dates, slots, duplicates', () => {
   assert.throws(()=>parseSchedule('{'));
-  for (const change of [ {version:2}, {sourceTimeZone:'UTC+5'}, {dayStart:'22:00'}, {slotDurationMinutes:0}, {slotDurationMinutes:17},
+  for (const change of [ {version:3}, {sourceTimeZone:'UTC+5'}, {dayStart:'22:00'}, {slotDurationMinutes:0}, {slotDurationMinutes:17},
     {updatedAt:'2026-02-30T10:30:00Z'}, {days:{'2026-02-30':{busy:[]}}}, {days:{'2026-09-21':{busy:['22:00']}}},
     {days:{'2026-09-21':{busy:['09:00','09:00']}}}, {days:{'2026-09-21':{busy:[],name:'Private'}}}, {email:'private@example.com'} ]) {
     assert.throws(()=>validateSchedule({...fixture(),...change}), undefined, JSON.stringify(change));
@@ -98,4 +98,37 @@ test('legacy migration preserves busy state for exactly two dated weeks', () => 
   assert.deepEqual(Object.keys(migrated.days), ['2026-09-14', '2026-09-21']);
   assert.deepEqual(migrated.days['2026-09-14'].busy, ['15:30']);
   assert.equal(isBusy(migrated, '2026-09-28', '15:30'), false);
+});
+
+const weekendFixture = () => ({...fixture(), version: 2, defaultBusyWeekdays: [6, 7]});
+test('weekends default busy; explicit dates including empty days override them', () => {
+  const value = weekendFixture();
+  for (const date of ['2026-10-03', '2026-10-04', '2027-01-02', '2027-01-03']) {
+    assert.ok(slotTimes(value).every(time => isBusy(value, date, time)));
+  }
+  assert.equal(isBusy(value, '2027-01-04', '09:00'), false);
+  value.days['2026-10-03'] = {busy: []};
+  value.days['2026-10-04'] = {busy: ['09:00']};
+  const restored = parseSchedule(serializeSchedule(value));
+  assert.equal(isBusy(restored, '2026-10-03', '09:00'), false);
+  assert.equal(isBusy(restored, '2026-10-04', '09:00'), true);
+  assert.equal(isBusy(restored, '2026-10-04', '09:30'), false);
+  assert.equal(isBusy(fixture(), '2026-10-03', '09:00'), false);
+});
+test('weekend defaults follow source dates across midnight and DST', () => {
+  const week = buildWeek(weekendFixture(), '2026-10-26', 'America/Los_Angeles');
+  const friday = week.byDate.get('2026-10-30');
+  assert.ok(friday.some(slot => slot.sourceDate === '2026-10-31' && slot.busy));
+  assert.ok(friday.some(slot => slot.sourceDate === '2026-10-30' && !slot.busy));
+  const sunday = week.byDate.get('2026-11-01');
+  assert.ok(sunday.some(slot => slot.sourceDate === '2026-11-02' && !slot.busy));
+  assert.ok(sunday.some(slot => slot.sourceDate === '2026-11-01' && slot.busy));
+});
+test('weekday defaults validate strictly and version 2 requires the field', () => {
+  for (const invalid of [null, '6,7', [0], [8], [6, 6], [6, 7.5], [true]]) {
+    assert.throws(() => validateSchedule({...weekendFixture(), defaultBusyWeekdays: invalid}));
+  }
+  assert.throws(() => validateSchedule({...fixture(), version: 2}));
+  assert.throws(() => validateSchedule({...fixture(), defaultBusyWeekdays: [6, 7]}));
+  validateSchedule({...weekendFixture(), defaultBusyWeekdays: []});
 });

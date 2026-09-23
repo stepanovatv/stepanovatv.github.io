@@ -1,6 +1,6 @@
-import { browserTimeZone, zonedParts, weekStart, addDays, offsetLabel, validTimeZone, currentWeek, clampToCurrentWeek } from './timezone.js?v=20260918-fast';
-import { buildWeek, fetchSchedule } from './schedule.js?v=20260918-fast';
-import { ru as t } from './strings.js?v=20260918-fast';
+import { browserTimeZone, zonedParts, weekStart, addDays, offsetLabel, validTimeZone, currentWeek, clampToCurrentWeek } from './timezone.js?v=20260923-weekends';
+import { buildWeek, fetchSchedule } from './schedule.js?v=20260923-weekends';
+import { ru as t } from './strings.js?v=20260923-weekends';
 
 const $ = id => document.getElementById(id);
 const browserZone = browserTimeZone();

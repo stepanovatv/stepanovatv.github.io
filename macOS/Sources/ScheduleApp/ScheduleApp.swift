@@ -3,6 +3,9 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     weak var model: ScheduleViewModel?
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        NSApp.appearance = NSAppearance(named: .aqua)
+    }
     @MainActor func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         guard let model else { return .terminateNow }
         if model.isWorking {
@@ -29,6 +32,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             guard Bundle.main.bundleURL.pathExtension == "app",
                   let configuration = AppResources.configuration() else {
                 print("ERROR: the application cannot load its packaged configuration")
+                exit(1)
+            }
+            guard let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns"),
+                  NSImage(contentsOf: iconURL) != nil else {
+                print("ERROR: the application icon is missing or invalid")
                 exit(1)
             }
             print("OK: packaged configuration for \(configuration.owner)/\(configuration.repository), branch \(configuration.branch)")

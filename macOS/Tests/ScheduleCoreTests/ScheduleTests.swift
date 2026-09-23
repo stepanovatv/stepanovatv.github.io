@@ -3,6 +3,54 @@ import Foundation
 @testable import ScheduleCore
 
 struct ScheduleTests {
+    @Test func weekendDefaultsAndExplicitFreeDatesSurviveRoundTrip() throws {
+        var schedule = Schedule()
+        for date in ["2026-10-03", "2026-10-04", "2027-01-02", "2027-01-03"] {
+            #expect(schedule.slotTimes.allSatisfy { schedule.isBusy(date: date, time: $0) })
+        }
+        #expect(!schedule.isBusy(date: "2027-01-04", time: "09:00"))
+        schedule.setBusy(false, date: "2026-10-03", times: ["09:00"])
+        #expect(!schedule.isBusy(date: "2026-10-03", time: "09:00"))
+        #expect(schedule.isBusy(date: "2026-10-03", time: "09:30"))
+        schedule.setBusy(false, date: "2026-10-04", times: schedule.slotTimes)
+        #expect(schedule.days["2026-10-04"]?.busy == [])
+        let restored = try Schedule.decode(schedule.encoded())
+        #expect(restored == schedule)
+        #expect(!restored.isBusy(date: "2026-10-04", time: "21:30"))
+        schedule.setBusy(true, date: "2026-10-03", times: ["09:00"])
+        #expect(schedule.days["2026-10-03"] == nil)
+        #expect(schedule.isBusy(date: "2026-10-03", time: "09:00"))
+    }
+    @Test func copyWeekPreservesClearedWeekendsAndDefaults() {
+        var schedule = Schedule()
+        schedule.setBusy(false, date: "2026-10-04", times: schedule.slotTimes)
+        schedule.setBusy(false, date: "2026-10-10", times: schedule.slotTimes)
+        schedule.copyPreviousWeek(to: "2026-10-05")
+        #expect(schedule.isBusy(date: "2026-10-10", time: "09:00"))
+        #expect(!schedule.isBusy(date: "2026-10-11", time: "09:00"))
+        #expect(schedule.days["2026-10-11"]?.busy == [])
+    }
+    @Test func legacySchedulesAndDraftsKeepFreeWeekends() throws {
+        let legacy = Schedule(version: 1)
+        let restored = try Schedule.decode(legacy.encoded())
+        #expect(!restored.isBusy(date: "2026-10-03", time: "09:00"))
+        #expect(restored.defaultBusyWeekdays.isEmpty)
+        let snapshot = DraftSnapshot(identity: "old", remote: RemoteSchedule(schedule: legacy, sha: "old"), draft: legacy, syncedAt: Date())
+        let draft = try JSONDecoder().decode(DraftSnapshot.self, from: JSONEncoder().encode(snapshot))
+        #expect(draft.draft == legacy)
+        #expect(!String(data: try legacy.encoded(), encoding: .utf8)!.contains("defaultBusyWeekdays"))
+    }
+    @Test func invalidWeekdayDefaultsAreRejected() throws {
+        for days in [[0], [8], [6, 6]] {
+            #expect(throws: ScheduleError.self) { try Schedule(defaultBusyWeekdays: days).validate() }
+        }
+        #expect(throws: ScheduleError.self) { try Schedule(version: 1, defaultBusyWeekdays: [6]).validate() }
+        var json = try JSONSerialization.jsonObject(with: Schedule().encoded()) as! [String: Any]
+        json.removeValue(forKey: "defaultBusyWeekdays")
+        #expect(throws: ScheduleError.self) { try Schedule.decode(JSONSerialization.data(withJSONObject: json)) }
+        json["defaultBusyWeekdays"] = [6, 7.5]
+        #expect(throws: ScheduleError.self) { try Schedule.decode(JSONSerialization.data(withJSONObject: json)) }
+    }
     @Test func testSerializationAndSlots() throws {
         var schedule = Schedule(); schedule.setBusy(true, date: "2026-09-21", times: ["09:00", "13:00"])
         #expect(try Schedule.decode(schedule.encoded()) == schedule)

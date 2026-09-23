@@ -31,6 +31,27 @@ import ScheduleCore
         #expect(model.schedule!.days["2026-09-14"]?.busy.count == 3)
     }
 
+    @Test func weekendEditingUndoAndWeekNavigationPreserveOverrides() throws {
+        let model = editor()
+        let before = model.schedule!
+        model.beginPaint(date: "2026-09-19", time: "09:00")
+        model.paint(date: "2026-09-19", time: "09:30")
+        model.endPaint()
+        #expect(!model.schedule!.isBusy(date: "2026-09-19", time: "09:00"))
+        #expect(model.schedule!.isBusy(date: "2026-09-19", time: "10:00"))
+        model.undo(); #expect(model.schedule == before)
+        model.redo(); #expect(!model.schedule!.isBusy(date: "2026-09-19", time: "09:30"))
+        model.setDay("2026-09-20", busy: false)
+        model.moveWeek(1); model.copyWeek()
+        #expect(!model.schedule!.isBusy(date: "2026-09-27", time: "21:30"))
+        let restored = try Schedule.decode(model.schedule!.encoded())
+        #expect(!restored.isBusy(date: "2026-09-26", time: "09:00"))
+        #expect(restored.isBusy(date: "2026-09-26", time: "10:00"))
+        #expect(!restored.isBusy(date: "2026-09-27", time: "09:00"))
+        model.moveWeek(1)
+        #expect(model.schedule!.isBusy(date: "2026-10-03", time: "09:00"))
+    }
+
     @Test func paintStartingOnBusyClearsEveryVisitedSlot() {
         let model = editor()
         model.schedule!.setBusy(true, date: "2026-09-14", times: ["09:00", "09:30"])
