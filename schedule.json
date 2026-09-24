@@ -135,6 +135,8 @@
     },
     "2026-09-24" : {
       "busy" : [
+        "14:00",
+        "14:30",
         "15:30",
         "16:00",
         "16:30",
@@ -213,9 +215,12 @@
       ]
     }
   },
+  "defaultBusyWeekdays" : [
+    6,
+    7
+  ],
   "slotDurationMinutes" : 30,
   "sourceTimeZone" : "Asia/Yekaterinburg",
-  "updatedAt" : "2026-09-23T17:14:28Z",
-  "version" : 2,
-  "defaultBusyWeekdays" : [6, 7]
+  "updatedAt" : "2026-09-24T15:55:20Z",
+  "version" : 2
 }
