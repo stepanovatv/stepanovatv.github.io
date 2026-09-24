@@ -24,8 +24,9 @@ struct RangeEditor: View {
             }
             HStack { Spacer(); Button("Отмена") { dismiss() }.keyboardShortcut(.cancelAction)
                 Button("Применить") { model.setRange(date: date, start: start, end: end, busy: busy); dismiss() }
-                    .keyboardShortcut(.defaultAction).disabled(start >= end)
+                    .scheduleControls(prominent: true).keyboardShortcut(.defaultAction).disabled(start >= end)
             }
-        }.padding(26).frame(width: 420)
+        }.padding(26).frame(width: 440)
+            .background(ScheduleAppearance.background).scheduleControls().tint(ScheduleAppearance.accent)
     }
 }

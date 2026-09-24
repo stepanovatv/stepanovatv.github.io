@@ -9,11 +9,15 @@ struct ContentView: View {
     @State private var confirmCopy = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            header.padding(24)
-            Divider()
+        VStack(alignment: .leading, spacing: 14) {
+            header.padding(20).schedulePanel()
             if let schedule = model.schedule {
-                ScheduleGrid(model: model, schedule: schedule).padding(.horizontal, 14)
+                ScheduleGrid(model: model, schedule: schedule)
+                    .padding(.horizontal, 10).padding(.bottom, 8)
+                    .background(.white.opacity(0.92), in: RoundedRectangle(cornerRadius: 22))
+                    .clipShape(RoundedRectangle(cornerRadius: 22))
+                    .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(.black.opacity(0.045), lineWidth: 1))
+                    .shadow(color: ScheduleAppearance.shadow, radius: 10, x: 0, y: 4)
             } else {
                 VStack(spacing: 18) {
                     if model.isWorking { ProgressView() }
@@ -25,13 +29,14 @@ struct ContentView: View {
                     }
                 }.frame(maxWidth: .infinity, maxHeight: .infinity).padding(30)
             }
-            Divider()
-            footer.padding(20)
+            footer.padding(16).schedulePanel()
         }
+        .padding(16)
         .frame(minWidth: 850, minHeight: 580)
-        .background(Color.white)
+        .background(ScheduleAppearance.background)
+        .scheduleControls()
         .preferredColorScheme(.light)
-        .tint(Color(red: 0.03, green: 0.51, blue: 0.28))
+        .tint(ScheduleAppearance.accent)
         .sheet(isPresented: $model.showingSettings) { SettingsView(model: model) }
         .sheet(isPresented: $showRange) { if let schedule = model.schedule { RangeEditor(model: model, schedule: schedule) } }
         .alert(Texts.conflict, isPresented: $model.hasConflict) {
@@ -47,7 +52,7 @@ struct ContentView: View {
         .task { await model.start() }
     }
     private var header: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(Texts.title).font(.system(size: 26, weight: .semibold))
@@ -56,16 +61,15 @@ struct ContentView: View {
                 }
                 Spacer()
                 Button { Task { await model.publish() } } label: {
-                    Label(model.isWorking ? "Подождите…" : Texts.publish, systemImage: "arrow.up.circle.fill")
-                        .padding(.vertical, 7).padding(.horizontal, 4)
-                }.buttonStyle(.borderedProminent).disabled(!model.canPublish).keyboardShortcut("s", modifiers: .command)
+                    ScheduleActionLabel(title: model.isWorking ? "Подождите…" : Texts.publish, icon: "arrow.up.circle")
+                }.scheduleControls(prominent: true).tint(ScheduleAppearance.accent).controlSize(.large).disabled(!model.canPublish).keyboardShortcut("s", modifiers: .command)
             }
             HStack(spacing: 12) {
-                Button { model.moveWeek(-1) } label: { Image(systemName: "chevron.left") }.help("Предыдущая неделя")
+                Button { model.moveWeek(-1) } label: { Image(systemName: "chevron.left").frame(width: 20, height: 26) }.help("Предыдущая неделя")
                 Text(model.weekTitle)
                     .font(.headline).frame(minWidth: 220)
-                Button { model.moveWeek(1) } label: { Image(systemName: "chevron.right") }.help("Следующая неделя")
-                Button("Сегодня") { model.today() }
+                Button { model.moveWeek(1) } label: { Image(systemName: "chevron.right").frame(width: 20, height: 26) }.help("Следующая неделя")
+                Button { model.today() } label: { Text("Сегодня").padding(.horizontal, 6).frame(height: 26) }
                 Spacer()
                 HStack(spacing: 8) {
                     actionButton(Texts.editRange, icon: "slider.horizontal.3") { showRange = true }
@@ -83,7 +87,7 @@ struct ContentView: View {
             Label(title, systemImage: icon).labelStyle(.iconOnly)
                 .font(.system(size: 16, weight: .medium)).frame(width: 30, height: 28)
         }
-        .buttonStyle(.bordered).help(title).accessibilityLabel(title)
+        .scheduleControls().help(title).accessibilityLabel(title)
     }
     private var footer: some View {
         HStack(alignment: .center) {
@@ -97,7 +101,10 @@ struct ContentView: View {
                 else if model.schedule != nil { Text("Синхронизация: \(model.syncLabel) · Проведите мышью по окнам для группового изменения").font(.caption).foregroundStyle(.secondary) }
             }
             Spacer()
-            Button("Открыть расписание") { if let url = URL(string: model.configuration.pagesURL) { openURL(url) } }
+            Button { if let url = URL(string: model.configuration.pagesURL) { openURL(url) } } label: {
+                ScheduleActionLabel(title: "Открыть расписание", icon: "arrow.up.right.square")
+            }
+                .scheduleControls().controlSize(.large)
                 .disabled(!model.configuration.isValid)
         }
     }

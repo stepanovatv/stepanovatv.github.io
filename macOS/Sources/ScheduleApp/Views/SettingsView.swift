@@ -30,8 +30,9 @@ struct SettingsView: View {
                 Button(saving ? "Подключаем…" : "Сохранить и подключить") {
                     saving = true
                     Task { let success = await model.saveSettings(config, token: token, removeToken: removeToken); token = ""; saving = false; if success { dismiss() } }
-                }.keyboardShortcut(.defaultAction).disabled(!config.isValid || saving || model.isWorking)
+                }.scheduleControls(prominent: true).keyboardShortcut(.defaultAction).disabled(!config.isValid || saving || model.isWorking)
             }
-        }.padding(26).frame(width: 560).disabled(saving)
+        }.padding(26).frame(width: 580).disabled(saving)
+            .background(ScheduleAppearance.background).scheduleControls().tint(ScheduleAppearance.accent)
     }
 }

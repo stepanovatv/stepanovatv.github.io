@@ -58,9 +58,8 @@ struct SlotReference: Hashable { let date: String; let time: String }
         guard !isWorking, configuration.isValid else { return }
         isWorking = true; status = Texts.loading; defer { isWorking = false }
         do {
-            let latest = try await GitHubService(configuration: configuration).fetch {
-                try keychain.read(account: configuration.identity)
-            }
+            // Reading this public repository must never prompt for a Keychain secret.
+            let latest = try await GitHubService(configuration: configuration).fetch(token: "")
             if isDirty && !discardChanges {
                 if remote?.sha != latest.sha { hasConflict = true; status = Texts.conflict; return }
                 syncedAt = Date(); status = Texts.dirty; cache(); return

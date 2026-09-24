@@ -17,23 +17,14 @@ final class StubProtocol: URLProtocol {
 }
 
 @Suite(.serialized) struct GitHubTests {
-    private enum CredentialError: Error { case locked }
-    @Test func publicReadWorksWhenCredentialsAreUnavailable() async throws {
+    @Test func publicReadSendsNoCredentials() async throws {
         StubProtocol.handler = { req in
             #expect(req.httpMethod == "GET")
             #expect(req.value(forHTTPHeaderField: "Authorization") == nil)
             return (200, try self.content())
         }
-        let loaded = try await service().fetch { throw CredentialError.locked }
+        let loaded = try await service().fetch(token: "")
         #expect(loaded.sha == "original")
-    }
-    @Test func privateReadPreservesCredentialErrorAndDoesNotWrite() async {
-        StubProtocol.handler = { req in
-            #expect(req.httpMethod == "GET")
-            return (404, Data())
-        }
-        do { _ = try await service().fetch { throw CredentialError.locked }; Issue.record("Credential error expected") }
-        catch { #expect(error is CredentialError) }
     }
     func service(branch: String = "master") -> GitHubService {
         let config = URLSessionConfiguration.ephemeral; config.protocolClasses = [StubProtocol.self]

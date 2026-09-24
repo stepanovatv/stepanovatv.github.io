@@ -5,10 +5,10 @@ struct CellAddress: Hashable { let row: Int; let column: Int }
 
 private enum AvailabilityPalette {
     static func ink(_ scheme: ColorScheme) -> Color {
-        scheme == .dark ? Color(red: 0.39, green: 0.94, blue: 0.65) : Color(red: 0.03, green: 0.46, blue: 0.25)
+        scheme == .dark ? Color(red: 0.39, green: 0.94, blue: 0.65) : Color(red: 0.02, green: 0.35, blue: 0.18)
     }
     static func fill(_ scheme: ColorScheme) -> Color {
-        scheme == .dark ? Color(red: 0.08, green: 0.31, blue: 0.20) : Color(red: 0.73, green: 0.95, blue: 0.82)
+        scheme == .dark ? Color(red: 0.08, green: 0.31, blue: 0.20) : Color(red: 0.42, green: 0.88, blue: 0.62)
     }
 }
 
@@ -33,7 +33,8 @@ private struct ScheduleSlotView: View, Equatable {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .foregroundStyle(busy ? Color.secondary : AvailabilityPalette.ink(scheme))
                 .background(busy ? Color.secondary.opacity(0.09) : AvailabilityPalette.fill(scheme),
-                            in: RoundedRectangle(cornerRadius: 5))
+                            in: RoundedRectangle(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(.white.opacity(busy ? 0.4 : 0.55), lineWidth: 1))
         }
         .buttonStyle(.plain).padding(3).disabled(!enabled)
         .accessibilityLabel("\(dayLabel), \(time), \(busy ? Texts.busy : Texts.free)")
