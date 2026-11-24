@@ -389,7 +389,9 @@
         "18:00",
         "18:30",
         "20:00",
-        "20:30"
+        "20:30",
+        "21:00",
+        "21:30"
       ]
     },
     "2026-11-25" : {
@@ -539,6 +541,6 @@
   ],
   "slotDurationMinutes" : 30,
   "sourceTimeZone" : "Asia/Yekaterinburg",
-  "updatedAt" : "2026-11-23T16:43:42Z",
+  "updatedAt" : "2026-11-24T13:52:24Z",
   "version" : 2
 }
